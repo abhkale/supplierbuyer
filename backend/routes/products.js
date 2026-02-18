@@ -6,6 +6,10 @@ const {
   getPriceHistory,
   getCategories,
 } = require('../controllers/productController');
+const { apiLimiter } = require('../middleware/rateLimiter');
+
+// Apply rate limiting to all product routes
+router.use(apiLimiter);
 
 router.get('/', getProducts);
 router.get('/categories', getCategories);
