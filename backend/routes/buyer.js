@@ -8,9 +8,10 @@ const { protect, authorize } = require('../middleware/auth');
 const { apiLimiter } = require('../middleware/rateLimiter');
 
 // All routes require authentication and buyer role
+// Apply rate limiting first
+router.use(apiLimiter);
 router.use(protect);
 router.use(authorize('buyer'));
-router.use(apiLimiter);
 
 router.get('/search', searchProducts);
 router.get('/products/:id/compare', comparePrices);
