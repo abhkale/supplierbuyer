@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useRef } from 'react';
 import { searchProducts } from '../services/buyerService';
 import { getCategories } from '../services/productService';
 import ProductCard from '../components/ProductCard';
@@ -9,17 +9,23 @@ const BuyerDashboard = () => {
   const [products, setProducts] = useState([]);
   const [categories, setCategories] = useState([]);
   const [loading, setLoading] = useState(true);
+  const [loadingMore, setLoadingMore] = useState(false);
   const [error, setError] = useState('');
+  const [page, setPage] = useState(1);
+  const [hasMore, setHasMore] = useState(true);
+  const [totalProducts, setTotalProducts] = useState(0);
   const [filters, setFilters] = useState({
     query: '',
     category: '',
     minPrice: '',
     maxPrice: '',
   });
+  const observerTarget = useRef(null);
 
   useEffect(() => {
     fetchCategories();
-    fetchProducts();
+    fetchProducts({}, 1, false);
+    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, []);
 
   const fetchCategories = async () => {
@@ -31,16 +37,37 @@ const BuyerDashboard = () => {
     }
   };
 
-  const fetchProducts = async (searchFilters = filters) => {
+  const fetchProducts = async (searchFilters = filters, pageNum = 1, append = false) => {
     try {
-      setLoading(true);
-      const data = await searchProducts(searchFilters);
-      setProducts(data.products);
+      if (append) {
+        setLoadingMore(true);
+      } else {
+        setLoading(true);
+      }
+      
+      const params = {
+        ...searchFilters,
+        page: pageNum,
+        limit: 20,
+      };
+      
+      const data = await searchProducts(params);
+      
+      if (append) {
+        setProducts(prev => [...prev, ...data.products]);
+      } else {
+        setProducts(data.products);
+      }
+      
+      setTotalProducts(data.total);
+      setPage(pageNum);
+      setHasMore(data.products.length === 20 && data.page < data.pages);
       setError('');
     } catch (err) {
       setError(err.response?.data?.message || 'Failed to fetch products');
     } finally {
       setLoading(false);
+      setLoadingMore(false);
     }
   };
 
@@ -50,7 +77,10 @@ const BuyerDashboard = () => {
 
   const handleSearch = (e) => {
     e.preventDefault();
-    fetchProducts(filters);
+    setProducts([]);
+    setPage(1);
+    setHasMore(true);
+    fetchProducts(filters, 1, false);
   };
 
   const clearFilters = () => {
@@ -61,8 +91,40 @@ const BuyerDashboard = () => {
       maxPrice: '',
     };
     setFilters(emptyFilters);
-    fetchProducts(emptyFilters);
+    setProducts([]);
+    setPage(1);
+    setHasMore(true);
+    fetchProducts(emptyFilters, 1, false);
   };
+
+  // Load more products when scrolling near bottom
+  useEffect(() => {
+    const loadMore = () => {
+      if (!loadingMore && !loading && hasMore) {
+        fetchProducts(filters, page + 1, true);
+      }
+    };
+
+    const observer = new IntersectionObserver(
+      (entries) => {
+        if (entries[0].isIntersecting) {
+          loadMore();
+        }
+      },
+      { threshold: 0.1 }
+    );
+
+    const currentTarget = observerTarget.current;
+    if (currentTarget) {
+      observer.observe(currentTarget);
+    }
+
+    return () => {
+      if (currentTarget) {
+        observer.unobserve(currentTarget);
+      }
+    };
+  }, [loadingMore, loading, hasMore, filters, page]);
 
   return (
     <div className="container mx-auto px-4 py-8">
@@ -164,11 +226,28 @@ const BuyerDashboard = () => {
         </div>
       ) : (
         <>
-          <p className="text-gray-600 mb-4">{products.length} products found</p>
+          <p className="text-gray-600 mb-4">
+            Showing {products.length} of {totalProducts} products
+          </p>
           <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
             {products.map((product) => (
               <ProductCard key={product._id} product={product} />
             ))}
+          </div>
+          
+          {/* Intersection Observer Target */}
+          <div ref={observerTarget} className="h-20 flex items-center justify-center">
+            {loadingMore && (
+              <div className="text-center py-4">
+                <div className="inline-block animate-spin rounded-full h-8 w-8 border-b-2 border-primary-600"></div>
+                <p className="text-gray-600 mt-2">Loading more products...</p>
+              </div>
+            )}
+            {!hasMore && products.length > 0 && (
+              <p className="text-gray-500 text-center py-4">
+                You've reached the end of the products list
+              </p>
+            )}
           </div>
         </>
       )}
