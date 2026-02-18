@@ -24,6 +24,12 @@ export const addProductToSupplier = async (productId, priceData) => {
   return response.data;
 };
 
+// Create a new product
+export const createProduct = async (productData) => {
+  const response = await api.post('/supplier/products', productData);
+  return response.data;
+};
+
 // Get price history
 export const getSupplierPriceHistory = async () => {
   const response = await api.get('/supplier/price-history');

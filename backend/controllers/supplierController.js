@@ -178,10 +178,87 @@ const addProductToSupplier = async (req, res) => {
   }
 };
 
+// @desc    Create a new product and add to supplier's catalog
+// @route   POST /api/supplier/products
+// @access  Private (Supplier only)
+const createProduct = async (req, res) => {
+  try {
+    const {
+      name,
+      description,
+      category,
+      subCategory,
+      sku,
+      brand,
+      unit,
+      specifications,
+      price,
+      stockStatus,
+      minimumOrderQuantity,
+    } = req.body;
+
+    const supplier = await Supplier.findById(req.user.supplierId);
+
+    if (!supplier) {
+      return res.status(404).json({ message: 'Supplier not found' });
+    }
+
+    // Check if SKU already exists
+    const existingProduct = await Product.findOne({ sku });
+    if (existingProduct) {
+      return res.status(400).json({ message: 'Product with this SKU already exists' });
+    }
+
+    // Create the product
+    const product = await Product.create({
+      name,
+      description,
+      category,
+      subCategory,
+      sku,
+      brand,
+      unit: unit || 'piece',
+      specifications: specifications || {},
+      suppliers: [supplier._id],
+    });
+
+    // Add product to supplier's list
+    supplier.productsSupplied.push(product._id);
+    await supplier.save();
+
+    // Create initial price entry
+    const priceHistory = await PriceHistory.create({
+      product: product._id,
+      supplier: supplier._id,
+      price,
+      stockStatus: stockStatus || 'in-stock',
+      minimumOrderQuantity: minimumOrderQuantity || 1,
+      updatedBy: req.user._id,
+      isActive: true,
+    });
+
+    res.status(201).json({
+      message: 'Product created successfully',
+      product: {
+        ...product.toObject(),
+        currentPrice: price,
+        stockStatus: stockStatus || 'in-stock',
+      },
+      priceHistory,
+    });
+  } catch (error) {
+    if (error.code === 11000) {
+      return res.status(400).json({ message: 'Product with this SKU already exists' });
+    }
+    res.status(500).json({ message: error.message });
+  }
+};
+
 module.exports = {
   getSupplierProfile,
   getSupplierProducts,
   updateProductPrice,
   getSupplierPriceHistory,
   addProductToSupplier,
+  createProduct,
 };

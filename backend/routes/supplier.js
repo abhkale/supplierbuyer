@@ -6,6 +6,7 @@ const {
   updateProductPrice,
   getSupplierPriceHistory,
   addProductToSupplier,
+  createProduct,
 } = require('../controllers/supplierController');
 const { protect, authorize } = require('../middleware/auth');
 const { apiLimiter, priceUpdateLimiter } = require('../middleware/rateLimiter');
@@ -18,6 +19,7 @@ router.use(authorize('supplier'));
 
 router.get('/profile', getSupplierProfile);
 router.get('/products', getSupplierProducts);
+router.post('/products', priceUpdateLimiter, createProduct);
 router.post('/products/:productId/price', priceUpdateLimiter, updateProductPrice);
 router.post('/products/:productId/add', priceUpdateLimiter, addProductToSupplier);
 router.get('/price-history', getSupplierPriceHistory);
