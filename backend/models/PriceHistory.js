@@ -63,7 +63,7 @@ priceHistorySchema.statics.getAllPricesForProduct = async function (productId) {
   return await this.aggregate([
     {
       $match: {
-        product: mongoose.Types.ObjectId(productId),
+        product: new mongoose.Types.ObjectId(productId),
         isActive: true,
       },
     },
