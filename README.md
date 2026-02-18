@@ -13,6 +13,7 @@ A complete MERN stack e-commerce platform where suppliers can manage product pri
 
 ### For Suppliers
 - **Product Management**: Manage your product catalog
+- **Create New Products**: Add new products to the system with full details
 - **Price Updates**: Easily update product prices (typically during 5-9am window)
 - **Stock Status**: Update stock availability (in-stock, limited, out-of-stock)
 - **Price History**: Track your own pricing history
@@ -111,6 +112,7 @@ supplierBuyer/
 ### Supplier Endpoints (Protected)
 - `GET /api/supplier/profile` - Get supplier profile
 - `GET /api/supplier/products` - Get supplier's products
+- `POST /api/supplier/products` - Create a new product
 - `POST /api/supplier/products/:id/price` - Update product price
 - `POST /api/supplier/products/:id/add` - Add product to catalog
 - `GET /api/supplier/price-history` - Get supplier price history

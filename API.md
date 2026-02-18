@@ -319,6 +319,55 @@ Add a product to supplier's catalog with initial price.
 }
 ```
 
+### Create New Product
+**POST** `/supplier/products`
+
+Create a new product and add it to supplier's catalog.
+
+**Headers:** `Authorization: Bearer <token>`
+
+**Request Body:**
+```json
+{
+  "name": "New Product Name",
+  "description": "Detailed product description",
+  "category": "Electronics",
+  "subCategory": "Computers",
+  "sku": "UNIQUE-SKU-001",
+  "brand": "Brand Name",
+  "unit": "piece",
+  "price": 999.99,
+  "stockStatus": "in-stock",
+  "minimumOrderQuantity": 1,
+  "specifications": {
+    "key1": "value1",
+    "key2": "value2"
+  }
+}
+```
+
+**Response:**
+```json
+{
+  "message": "Product created successfully",
+  "product": {
+    "_id": "64abc123...",
+    "name": "New Product Name",
+    "description": "Detailed product description",
+    "category": "Electronics",
+    "sku": "UNIQUE-SKU-001",
+    "currentPrice": 999.99,
+    "stockStatus": "in-stock"
+  },
+  "priceHistory": {
+    "_id": "64abc999...",
+    "product": "64abc123...",
+    "supplier": "64abc321...",
+    "price": 999.99
+  }
+}
+```
+
 ### Get Supplier Price History
 **GET** `/supplier/price-history`
 
