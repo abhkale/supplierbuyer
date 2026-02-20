@@ -2,6 +2,7 @@ import React from 'react';
 import ReactDOM from 'react-dom/client';
 import './index.css';
 import App from './App';
+import * as serviceWorkerRegistration from './serviceWorkerRegistration';
 
 const root = ReactDOM.createRoot(document.getElementById('root'));
 root.render(
@@ -9,3 +10,20 @@ root.render(
     <App />
   </React.StrictMode>
 );
+
+// Register service worker for PWA functionality
+serviceWorkerRegistration.register({
+  onSuccess: () => {
+    console.log('App is ready to work offline!');
+  },
+  onUpdate: (registration) => {
+    console.log('New version available! Please refresh.');
+    // Optionally show a notification to the user
+    if (registration && registration.waiting) {
+      registration.waiting.postMessage({ type: 'SKIP_WAITING' });
+    }
+  }
+});
+
+// Setup install prompt for PWA
+serviceWorkerRegistration.setupInstallPrompt();

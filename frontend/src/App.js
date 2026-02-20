@@ -9,6 +9,7 @@ import SupplierDashboard from './pages/SupplierDashboard';
 import BuyerDashboard from './pages/BuyerDashboard';
 import ProductDetails from './pages/ProductDetails';
 import Loading from './components/Loading';
+import InstallPWA from './components/InstallPWA';
 
 // Protected Route Component
 const ProtectedRoute = ({ children, allowedRoles }) => {
@@ -72,6 +73,9 @@ function App() {
           {/* Catch all */}
           <Route path="*" element={<Navigate to="/" replace />} />
         </Routes>
+        
+        {/* PWA Install Prompt */}
+        <InstallPWA />
       </div>
     </Router>
   );
