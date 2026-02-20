@@ -1,4 +1,4 @@
-import React, { useState, useEffect, useRef } from 'react';
+import React, { useState, useEffect, useRef, useCallback } from 'react';
 import { searchProducts } from '../services/buyerService';
 import { getCategories } from '../services/productService';
 import ProductCard from '../components/ProductCard';
@@ -25,7 +25,7 @@ const BuyerDashboard = () => {
   useEffect(() => {
     fetchCategories();
     fetchProducts({}, 1, false);
-  }, []);
+  }, [fetchProducts]);
 
   const fetchCategories = async () => {
     try {
@@ -36,7 +36,7 @@ const BuyerDashboard = () => {
     }
   };
 
-  const fetchProducts = async (searchFilters = filters, pageNum = 1, append = false) => {
+  const fetchProducts = useCallback(async (searchFilters = filters, pageNum = 1, append = false) => {
     try {
       if (append) {
         setLoadingMore(true);
@@ -68,7 +68,7 @@ const BuyerDashboard = () => {
       setLoading(false);
       setLoadingMore(false);
     }
-  };
+  }, [filters]);
 
   const handleFilterChange = (e) => {
     setFilters({ ...filters, [e.target.name]: e.target.value });
@@ -123,7 +123,7 @@ const BuyerDashboard = () => {
         observer.unobserve(currentTarget);
       }
     };
-  }, [loadingMore, loading, hasMore, filters, page]);
+  }, [loadingMore, loading, hasMore, filters, page, fetchProducts]);
 
   return (
     <div className="container mx-auto px-4 py-8">
